@@ -7,6 +7,7 @@
 #define USE_COLOR_SENSOR
 
 #include "Sensor.h"
+#include "comn.h"
 
 
 //// ピン番号の設定
@@ -92,6 +93,13 @@ void turn(int l_speed, int r_speed)
 }
 
 
+void Comn::motor(int idx, int speed) {
+  straight(10);
+  delay(100);
+  straight(0);
+}
+Comn comn;
+
 void setup() {
   Serial.begin(115200);
   pinMode(18,INPUT_PULLUP);
@@ -165,6 +173,8 @@ int sum_sw_hist(){
 }
 void loop() {
   sensor.set(); // センサーの値を読み取ります。
+  comn.loop();
+  return;
   int color_sensor_result = set_color_states(sensor.get_color_state());
 
   sw_hist[sw_hist_idx++]=!digitalRead(18);
@@ -196,7 +206,7 @@ void loop() {
   //sensor.debug();
   //sensor.debug_raw();
   //sensor.debug_color();
-  //sensor.debug_color_raw(0);
+  //  sensor.debug_color_raw(0);
   //sensor.detect_color(0);
   //delay(100);
   //return;
