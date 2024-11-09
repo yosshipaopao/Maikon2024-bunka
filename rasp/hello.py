@@ -22,7 +22,7 @@ def main():
     while True:
         #カメラからの画像取得
         frame = camera.capture_array()
-        frame = frame[:,:1200]
+        frame = frame[:,:800]
         frame = cv2.resize(frame,None,fx=0.5,fy=0.5)
         cimg = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         cimg = cv2.equalizeHist(cimg)
@@ -35,12 +35,18 @@ def main():
                 # draw the center of the circle
                 cv2.circle(cimg,(i[0],i[1]),2,(0,0,255),3)
                 print("({},{}) r={}".format(i[0],i[1],i[2]))
-                x = 50
-                y = 50
-                x += (i[1] - 320) / 10
-                y -= (i[1] - 320) / 10
-                motor(ser,x,y)
-                print("m:{}:{}".format(x,y))
+            if len(circles[0]) > 4:
+                motor(ser,0,0)
+                print("m!:0:0")
+            else:
+                for i in circles[0,:]:
+                    x = 50
+                    y = 50
+                    x += (i[1] - 320) / 30
+                    y -= (i[1] - 320) / 30
+                    motor(ser,x,y)
+                    print("m:{}:{}".format(x,y))
+                    time.sleep(1)
         else:
             motor(ser,0,0)
             print("m:0:0")
