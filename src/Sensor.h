@@ -50,16 +50,19 @@ public:
         rep(i, PIN_SIZE){
             pinMode(pins[i], INPUT);
         }
+        Serial.println("sensor setuping");
 #ifdef USE_COLOR_SENSOR
         while(!c_sensor_1.begin(0x29, &Wire)) {
             Serial.println("sensor1 No TCS34725 found ... check your connections");
             delay(1000);
         }
+        Serial.println("sensor1 setuped");
         while(!c_sensor_2.begin(0x6D, &Wire)) {
             Serial.println("sensor2 No TCS34725 found ... check your connections");
             delay(1000);
         }
 #endif
+        Serial.println("sensor setuped");
     };
 // 値を読んで一時保存場所にセット
 void set()
@@ -90,7 +93,7 @@ unsigned int get_state(){
         int sumr = 0, sumg = 0;
         rep(i, COLOR_SENSOR_HIST_SIZE)sumr += color_raw_hist[s][0][i];
         rep(i, COLOR_SENSOR_HIST_SIZE)sumg += color_raw_hist[s][1][i];
-        if(true){
+        if(false){
             Serial.print("sumr: ");
             Serial.print(sumr);
             Serial.print(" sumg: ");

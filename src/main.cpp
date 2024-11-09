@@ -15,8 +15,8 @@
 const int LEFT_U1 = 3;
 const int LEFT_U2 = 2;
 const int LEFT_UA = 4;
-const int LEFT_D1 = 5;
-const int LEFT_D2 = 6;
+const int LEFT_D1 = 6;
+const int LEFT_D2 = 5;
 const int LEFT_DA = 7;
 // 右モーター
 const int RIGHT_U1 = 12;
@@ -34,9 +34,9 @@ const int STANDBY = 16;
 
 //// 微調整用の変数
 // 通常走行の速度
-const int RUN_SP = 40;
+const int RUN_SP = 50;
 // ゆっくり曲がるときの速度
-const int HALF_STOP_SP = 20;
+const int HALF_STOP_SP = 25;
 // 強く曲がるときの速度
 const int STOP_SP = 0;
 // sensor
@@ -102,8 +102,11 @@ Comn comn;
 
 void setup() {
   Serial.begin(115200);
+  delay(1000);
+  Serial.println("start");
   pinMode(18,INPUT_PULLUP);
   sensor.setup();
+  Serial.println("setup");
   motor_setup();
 }
 
@@ -151,7 +154,7 @@ void reset_color_states(){
 void force_turn_90(int to){
   if(to==1)turn(HALF_STOP_SP,-HALF_STOP_SP);
   else turn(-HALF_STOP_SP,HALF_STOP_SP);
-  delay(1200);
+  delay(800);
   rep(i,10)states[i] = 1;
    while (true)  
   {
@@ -173,14 +176,15 @@ int sum_sw_hist(){
 }
 void loop() {
   sensor.set(); // センサーの値を読み取ります。
-  comn.loop();
-  return;
+  //comn.loop();
+  //return;
   int color_sensor_result = set_color_states(sensor.get_color_state());
 
   sw_hist[sw_hist_idx++]=!digitalRead(18);
   sw_hist_idx %= 100;
   
   if(sum_sw_hist() > 80){
+    Serial.println("start syougai");
     straight(-RUN_SP);
     delay(1500);
     turn(-RUN_SP,RUN_SP);
@@ -206,7 +210,7 @@ void loop() {
   //sensor.debug();
   //sensor.debug_raw();
   //sensor.debug_color();
-  //  sensor.debug_color_raw(0);
+  //sensor.debug_color_raw(0);
   //sensor.detect_color(0);
   //delay(100);
   //return;
@@ -216,11 +220,10 @@ void loop() {
   //Serial.print(sensor.detect_color(0));
   //Serial.print(" ");
   //Serial.println(sensor.detect_color(1));
-  //Serial.println();
   //return;
   
   get_sum_state();
-  //Serial.println(sum_state);
+  Serial.println(sum_state);
 
   if(color_sensor_result!=0){
     straight(HALF_STOP_SP);
@@ -244,8 +247,6 @@ void loop() {
   switch (sensor.get_state())
   {
   case 0b11111:
-  case 0b11110:
-  case 0b01111:
   case 0b01110:
   case 0b00100:
     straight(RUN_SP);
@@ -267,31 +268,38 @@ void loop() {
     turn(STOP_SP, RUN_SP);
     new_state(-2);
     break;
-  case 0b11100:
-    turn(RUN_SP, STOP_SP);
-    new_state(3);
-    break;
   case 0b11000:
     turn(RUN_SP, STOP_SP);
-    new_state(3);
+    new_state(10);
     break;
-  case 0b00111:
-    turn(STOP_SP, RUN_SP);
-    new_state(-30);
+  case 0b11100:
+    turn(RUN_SP, STOP_SP);
+    new_state(30);
+    break;
+  case 0b11110:
+    turn(HALF_STOP_SP, RUN_SP);
+    new_state(20);
     break;
   case 0b00011:
     turn(STOP_SP, RUN_SP);
     new_state(-10);
     break;
+  case 0b00111:
+    turn(STOP_SP, RUN_SP);
+    new_state(-30);
+    break;
+  case 0b01111:
+    turn(HALF_STOP_SP, RUN_SP);
+    new_state(-20);
+    break;
   case 0b00000:
-    new_state(0);
     Serial.println("!!!");
     get_sum_state();
     straight(HALF_STOP_SP);
     delay(700);
-    if(sum_state > 30){
+    if(sum_state >= 20){
       turn(HALF_STOP_SP,-HALF_STOP_SP);
-    }else if(sum_state < -30){
+    }else if(sum_state <= -20){
       turn(-HALF_STOP_SP,HALF_STOP_SP);
     }else{
       straight(HALF_STOP_SP);
@@ -301,7 +309,8 @@ void loop() {
     {
       sensor.set();
       int state = sensor.get_state();
-      if (state == 0b01110 || state == 0b01100 || state == 0b00110 || state == 0b00100 || state == 0b11111)new_state(0);
+      if (state == 0b01110 || state == 0b01100 || state == 0b00110 || state == 0b00100 
+          ||  state == 0b00010 || state == 0b01000 || state == 0b11111)new_state(0);
       else new_state(1);
       get_sum_state();
       if(sum_state < 2)break;
