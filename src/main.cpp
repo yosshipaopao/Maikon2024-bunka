@@ -4,9 +4,7 @@
 #include "Servo.h"
 #include "Motor.h"
 
-#define USE_COLOR_SENSOR
-
-#include "Sensor.h"
+#include "sensor.h"
 #include "comn.h"
 
 
@@ -134,7 +132,7 @@ int get_sum_state()
   rep(i, 10)sum_state += states[i];
   return sum_state;
 }
-
+/*
 int color_states[COLOR_SENSOR_HIST_SIZE];
 int color_states_idx =0;
 int set_color_states(int state)
@@ -175,14 +173,17 @@ int sum_sw_hist(){
   int sum = 0;
   rep(i,100)sum += sw_hist[i];
   return sum;
-}
+}*/
 void loop() {
   //sensor.set(); // センサーの値を読み取ります。
   //sensor.debug();
   //straight(50);
   //delay(100000);1
-  comn.loop();
+  sensor.color_led(sensor.next_led());
+  delay(1000);
+  //comn.loop();
   return;
+  /*
   int color_sensor_result = set_color_states(sensor.get_color_state());
 
   sw_hist[sw_hist_idx++]=!digitalRead(18);
@@ -208,9 +209,9 @@ void loop() {
   
   //Serial.print("color(state,result) :");
   //Serial.println(sensor.get_color_state());
-  /*
-  Serial.print(" ");
-  Serial.println(color_sensor_result);*/
+
+  //Serial.print(" ");
+  //Serial.println(color_sensor_result);
   //if(color_sensor_result != 0)Serial.println("color sensor detect");
   //sensor.debug();
   //sensor.debug_raw();
@@ -327,4 +328,5 @@ void loop() {
     break;
   }
   ///// line trace end
+  */
 }
