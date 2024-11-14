@@ -14,11 +14,14 @@ def main():
     while True:
         #カメラからの画像取得
         frame = camera.capture_array()
-        frame = frame[:,:1200]
+        frame = frame[:,:800]
         frame = cv2.resize(frame,None,fx=0.5,fy=0.5)
+        #img_mask = cv2.inRange(frame, np.array([0,0,125,0]), np.array([100,100,255,255]))
+        #frame[img_mask != 0] = frame[len(frame)//2][len(frame[0])//2]
         cimg = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        cimg = cv2.equalizeHist(cimg)
-        circles = cv2.HoughCircles(cimg, cv2.HOUGH_GRADIENT, dp=.5, minDist=50, param1=100, param2=60, minRadius=10, maxRadius=150)
+        cimg = cv2.blur(cimg,(3,3))
+        #cimg = cv2.equalizeHist(cimg)
+        circles = cv2.HoughCircles(cimg, cv2.HOUGH_GRADIENT, dp=1, minDist=50, param1=100, param2=40, minRadius=10, maxRadius=150)
         if circles is not None:
             circles = np.uint16(np.around(circles))
             for i in circles[0,:]:
