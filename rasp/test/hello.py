@@ -24,9 +24,9 @@ def main():
         frame = camera.capture_array()
         frame = frame[:,:1000]
         frame = cv2.resize(frame,None,fx=0.5,fy=0.5)
+        
         cimg = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         cimg = cv2.blur(cimg,(3,3))
-        #cimg = cv2.equalizeHist(cimg)
         circles = cv2.HoughCircles(cimg, cv2.HOUGH_GRADIENT, dp=.7, minDist=50, param1=100, param2=51, minRadius=10, maxRadius=150)
         if circles is not None:
             circles = np.uint16(np.around(circles))

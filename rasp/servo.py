@@ -1,22 +1,21 @@
 import pigpio
-import time
-
-SERVO_PIN = 14
 
 PINS = [14,15,23,24]
 
-pi = pigpio.pi()
-def set_angle(pin,angle):
-    # 角度を500から2500のパルス幅にマッピングする
+def setup()->pigpio.pi:
+    pi = pigpio.pi()
+    return pi
+
+def set_angle(pi:pigpio.pi,pin:int,angle:int)->None:
     pulse_width = (angle / 180) * (2500 - 500) + 500
-    # パルス幅を設定してサーボを回転させる
     pi.set_servo_pulsewidth(pin, pulse_width)
 
-# 使用例
-while True:
-    set_angle(PINS[0],110)
-    set_angle(PINS[1],70)
-    time.sleep(1)    
-    set_angle(PINS[0],0)
-    set_angle(PINS[1],180)
-    time.sleep(5)
+# 110 -> 0
+def move_catcher(pi:pigpio.pi,angle:int)->None:
+    set_angle(pi,PINS[0],angle)
+    set_angle(pi,PINS[1],180-angle)
+
+# 180 -> 80
+def move_holder(pi:pigpio.pi,angle:int)->None:
+    set_angle(pi,PINS[2],angle)
+    set_angle(pi,PINS[3],180-angle)

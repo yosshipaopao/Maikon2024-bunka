@@ -29,7 +29,7 @@ public:
     {
       digitalWrite(M_1, LOW);
       digitalWrite(M_2, HIGH);
-      analogWrite(M_A, speed * -1);
+      analogWrite(M_A, -speed);
     }
   };
 };

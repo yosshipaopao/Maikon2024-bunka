@@ -6,7 +6,7 @@
 class Comn {
     public:
         void loop();
-        void motor(int idx, int speed);
+        void motor(int speedl, int speedr);
         bool linetracing = false;
         bool color_sensor[2] = {false,false};
     private:

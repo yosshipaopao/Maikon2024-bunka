@@ -93,10 +93,12 @@ void turn(int l_speed, int r_speed)
 }
 
 
-void Comn::motor(int idx, int speed) {
-  straight(10);
-  delay(100);
-  straight(0);
+void Comn::motor(int speedl, int speedr) {
+  turn(-speedr, -speedl);
+  Serial.print("motor: ");
+  Serial.print(-speedr);
+  Serial.print(" ");
+  Serial.println(-speedl);
 }
 Comn comn;
 
@@ -175,9 +177,12 @@ int sum_sw_hist(){
   return sum;
 }
 void loop() {
-  sensor.set(); // センサーの値を読み取ります。
-  //comn.loop();
-  //return;
+  //sensor.set(); // センサーの値を読み取ります。
+  //sensor.debug();
+  //straight(50);
+  //delay(100000);1
+  comn.loop();
+  return;
   int color_sensor_result = set_color_states(sensor.get_color_state());
 
   sw_hist[sw_hist_idx++]=!digitalRead(18);
@@ -210,8 +215,8 @@ void loop() {
   //sensor.debug();
   //sensor.debug_raw();
   //sensor.debug_color();
-  //sensor.debug_color_raw(0);
-  //sensor.detect_color(0);
+  //sensor.debug_color_raw(1);
+  //Serial.println(sensor.detect_color(0));
   //delay(100);
   //return;
   //straight(RUN_SP);
@@ -223,7 +228,7 @@ void loop() {
   //return;
   
   get_sum_state();
-  Serial.println(sum_state);
+  //Serial.println(sum_state);
 
   if(color_sensor_result!=0){
     straight(HALF_STOP_SP);
