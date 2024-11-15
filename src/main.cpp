@@ -32,9 +32,9 @@ const int STANDBY = 16;
 
 //// 微調整用の変数
 // 通常走行の速度
-const int RUN_SP = 50;
+const int RUN_SP = 40;
 // ゆっくり曲がるときの速度
-const int HALF_STOP_SP = 25;
+const int HALF_STOP_SP = 20;
 // 強く曲がるときの速度
 const int STOP_SP = 0;
 // sensor
@@ -43,6 +43,7 @@ const int COLOR_THRESHOLD2 = 10;
 // 90 turn delay
 const int TURN_DELAY = 2000;
 
+const int COLOR_SENSOR_HIST_SIZE = 5;
 
 // クラスを実体化
 Motor motor_lu(LEFT_UA, LEFT_U1, LEFT_U2);
@@ -132,7 +133,7 @@ int get_sum_state()
   rep(i, 10)sum_state += states[i];
   return sum_state;
 }
-/*
+
 int color_states[COLOR_SENSOR_HIST_SIZE];
 int color_states_idx =0;
 int set_color_states(int state)
@@ -173,17 +174,20 @@ int sum_sw_hist(){
   int sum = 0;
   rep(i,100)sum += sw_hist[i];
   return sum;
-}*/
+}
+
 void loop() {
-  //sensor.set(); // センサーの値を読み取ります。
-  //sensor.debug();
-  //straight(50);
-  //delay(100000);1
+  sensor.set();
   sensor.color_led(sensor.next_led());
-  delay(1000);
+  delay(50);
+  //sensor.debug_raw();
+  //sensor.debug_color_raw(false);
+  //sensor.debug_color();
+  //Serial.println(sensor.next_led());
+  //delay(100);
   //comn.loop();
-  return;
-  /*
+  sensor.debug_color_state();
+  //return;
   int color_sensor_result = set_color_states(sensor.get_color_state());
 
   sw_hist[sw_hist_idx++]=!digitalRead(18);
@@ -208,8 +212,7 @@ void loop() {
   }
   
   //Serial.print("color(state,result) :");
-  //Serial.println(sensor.get_color_state());
-
+  //Serial.print(sensor.get_color_state());
   //Serial.print(" ");
   //Serial.println(color_sensor_result);
   //if(color_sensor_result != 0)Serial.println("color sensor detect");
@@ -233,7 +236,7 @@ void loop() {
 
   if(color_sensor_result!=0){
     straight(HALF_STOP_SP);
-    delay(1500);
+    delay(1000);
     if(color_sensor_result==1){
       Serial.println("180 turn");
       force_turn_90(0);
@@ -302,7 +305,7 @@ void loop() {
     Serial.println("!!!");
     get_sum_state();
     straight(HALF_STOP_SP);
-    delay(700);
+    delay(300);
     if(sum_state >= 20){
       turn(HALF_STOP_SP,-HALF_STOP_SP);
     }else if(sum_state <= -20){
@@ -328,5 +331,4 @@ void loop() {
     break;
   }
   ///// line trace end
-  */
 }

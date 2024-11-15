@@ -1,3 +1,4 @@
+/*
 #ifndef Sensor_h
 #define Sensor_h
 
@@ -171,3 +172,4 @@ void debug_color_raw(int mode=0){
 }
 ;
 #endif
+*/
