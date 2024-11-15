@@ -176,159 +176,157 @@ int sum_sw_hist(){
   return sum;
 }
 
+// 0 line trace
+// 1 comn
+int mode = 0;
 void loop() {
-  sensor.set();
-  sensor.color_led(sensor.next_led());
-  delay(50);
-  //sensor.debug_raw();
-  //sensor.debug_color_raw(false);
-  //sensor.debug_color();
-  //Serial.println(sensor.next_led());
-  //delay(100);
-  //comn.loop();
-  sensor.debug_color_state();
-  //return;
-  int color_sensor_result = set_color_states(sensor.get_color_state());
+  if(mode == 0){   
+    sensor.set();
+    sensor.color_led(sensor.next_led());
+    delay(50);
 
-  sw_hist[sw_hist_idx++]=!digitalRead(18);
-  sw_hist_idx %= 100;
-  
-  if(sum_sw_hist() > 80){
-    Serial.println("start syougai");
-    straight(-RUN_SP);
-    delay(1500);
-    turn(-RUN_SP,RUN_SP);
-    delay(1100);
-    straight(RUN_SP);
-    delay(3000);
-    turn(RUN_SP,-RUN_SP);
-    delay(1100);
-    straight(RUN_SP);
-    delay(3000);
-    turn(RUN_SP,-RUN_SP);
-    delay(1100);
-    rep(i,10)states[i] = 0;
-    rep(i,100)sw_hist[i] = 0;
-  }
-  
-  //Serial.print("color(state,result) :");
-  //Serial.print(sensor.get_color_state());
-  //Serial.print(" ");
-  //Serial.println(color_sensor_result);
-  //if(color_sensor_result != 0)Serial.println("color sensor detect");
-  //sensor.debug();
-  //sensor.debug_raw();
-  //sensor.debug_color();
-  //sensor.debug_color_raw(1);
-  //Serial.println(sensor.detect_color(0));
-  //delay(100);
-  //return;
-  //straight(RUN_SP);
-  //delay(10);
-  
-  //Serial.print(sensor.detect_color(0));
-  //Serial.print(" ");
-  //Serial.println(sensor.detect_color(1));
-  //return;
-  
-  get_sum_state();
-  //Serial.println(sum_state);
+    int color_sensor_result = set_color_states(sensor.get_color_state());
 
-  if(color_sensor_result!=0){
-    straight(HALF_STOP_SP);
-    delay(1000);
-    if(color_sensor_result==1){
-      Serial.println("180 turn");
-      force_turn_90(0);
-      Serial.println("90 turn");
-      force_turn_90(0);
-      Serial.println("180 fin");
-    }else if(color_sensor_result == 2){
-      Serial.println("90 turn");
-      force_turn_90(0);
-    }else if(color_sensor_result == 3){
-      Serial.println("-90 turn");
-      force_turn_90(1);
+    sw_hist[sw_hist_idx++]=!digitalRead(18);
+    sw_hist_idx %= 100;
+    
+    if(sum_sw_hist() > 80){
+      Serial.println("start syougai");
+      straight(-RUN_SP);
+      delay(1500);
+      turn(-RUN_SP,RUN_SP);
+      delay(1100);
+      straight(RUN_SP);
+      delay(3000);
+      turn(RUN_SP,-RUN_SP);
+      delay(1100);
+      straight(RUN_SP);
+      delay(3000);
+      turn(RUN_SP,-RUN_SP);
+      delay(1100);
+      rep(i,10)states[i] = 0;
+      rep(i,100)sw_hist[i] = 0;
     }
-    reset_color_states();
-  }
-  // 真ん中が同時についたら直進する
-  switch (sensor.get_state())
-  {
-  case 0b11111:
-  case 0b01110:
-  case 0b00100:
-    straight(RUN_SP);
-    new_state(0);
-    break;
-  case 0b01100:
-    turn(RUN_SP, HALF_STOP_SP);
-    new_state(1);
-    break;
-  case 0b00110:
-    turn(HALF_STOP_SP, RUN_SP);
-    new_state(-1);
-    break;
-  case 0b10000:
-    turn(RUN_SP, STOP_SP);
-    new_state(2);
-    break;
-  case 0b00001:
-    turn(STOP_SP, RUN_SP);
-    new_state(-2);
-    break;
-  case 0b11000:
-    turn(RUN_SP, STOP_SP);
-    new_state(10);
-    break;
-  case 0b11100:
-    turn(RUN_SP, STOP_SP);
-    new_state(30);
-    break;
-  case 0b11110:
-    turn(HALF_STOP_SP, RUN_SP);
-    new_state(20);
-    break;
-  case 0b00011:
-    turn(STOP_SP, RUN_SP);
-    new_state(-10);
-    break;
-  case 0b00111:
-    turn(STOP_SP, RUN_SP);
-    new_state(-30);
-    break;
-  case 0b01111:
-    turn(HALF_STOP_SP, RUN_SP);
-    new_state(-20);
-    break;
-  case 0b00000:
-    Serial.println("!!!");
+    
     get_sum_state();
-    straight(HALF_STOP_SP);
-    delay(300);
-    if(sum_state >= 20){
-      turn(HALF_STOP_SP,-HALF_STOP_SP);
-    }else if(sum_state <= -20){
-      turn(-HALF_STOP_SP,HALF_STOP_SP);
-    }else{
+    
+    if(color_sensor_result!=0){
       straight(HALF_STOP_SP);
+      delay(1000);
+      if(color_sensor_result==1){
+        Serial.println("180 turn");
+        force_turn_90(0);
+        Serial.println("90 turn");
+        force_turn_90(0);
+        Serial.println("180 fin");
+      }else if(color_sensor_result == 2){
+        Serial.println("90 turn");
+        force_turn_90(0);
+      }else if(color_sensor_result == 3){
+        Serial.println("-90 turn");
+        force_turn_90(1);
+      }
+      reset_color_states();
     }
-    rep(i,10)states[i] = 1;
-    while (true)  
+    // 真ん中が同時についたら直進する
+    switch (sensor.get_state())
     {
-      sensor.set();
-      int state = sensor.get_state();
-      if (state == 0b01110 || state == 0b01100 || state == 0b00110 || state == 0b00100 
-          ||  state == 0b00010 || state == 0b01000 || state == 0b11111)new_state(0);
-      else new_state(1);
+    case 0b11111:
+    case 0b01110:
+    case 0b00100:
+      straight(RUN_SP);
+      new_state(0);
+      break;
+    case 0b01100:
+      turn(RUN_SP, HALF_STOP_SP);
+      new_state(1);
+      break;
+    case 0b00110:
+      turn(HALF_STOP_SP, RUN_SP);
+      new_state(-1);
+      break;
+    case 0b10000:
+      turn(RUN_SP, STOP_SP);
+      new_state(2);
+      break;
+    case 0b00001:
+      turn(STOP_SP, RUN_SP);
+      new_state(-2);
+      break;
+    case 0b11000:
+      turn(RUN_SP, STOP_SP);
+      new_state(10);
+      break;
+    case 0b11100:
+      turn(RUN_SP, STOP_SP);
+      new_state(30);
+      break;
+    case 0b11110:
+      turn(HALF_STOP_SP, RUN_SP);
+      new_state(20);
+      break;
+    case 0b00011:
+      turn(STOP_SP, RUN_SP);
+      new_state(-10);
+      break;
+    case 0b00111:
+      turn(STOP_SP, RUN_SP);
+      new_state(-30);
+      break;
+    case 0b01111:
+      turn(HALF_STOP_SP, RUN_SP);
+      new_state(-20);
+      break;
+    case 0b00000:
+      Serial.println("!!!");
       get_sum_state();
-      if(sum_state < 2)break;
+      straight(HALF_STOP_SP);
+      delay(300);
+      if(sum_state >= 20){
+        turn(HALF_STOP_SP,-HALF_STOP_SP);
+      }else if(sum_state <= -20){
+        turn(-HALF_STOP_SP,HALF_STOP_SP);
+      }else{
+        straight(HALF_STOP_SP);
+      }
+      rep(i,10)states[i] = 1;
+      int cnt = 0;
+      while (true)  
+      {
+        sensor.set();
+        delay(50);
+        int state = sensor.get_state();
+        if (state == 0b01110 || state == 0b01100 || state == 0b00110 || state == 0b00100 
+            ||  state == 0b00010 || state == 0b01000 || state == 0b11111)new_state(0);
+        else new_state(1);
+        get_sum_state();
+        if(sum_state < 2)break;
+        if(cnt++ > 100){
+          mode=1;
+          comn.set_mode(1);
+          return;
+        }
+      }
+      rep(i,10)states[i] = 0;
+      break;
+    default:
+      straight(RUN_SP);
+      break;
     }
-    rep(i,10)states[i] = 0;
-    break;
-  default:
-    straight(RUN_SP);
-    break;
+  }else{
+    sensor.set();
+    int a =0;
+    while(sensor.get_state()!=0b00000){
+      a++;
+      delay(10);
+      if(a>10){
+        mode = 0;
+        comn.set_mode(0);
+        return;
+      }
+      sensor.set();
+    }
+    comn.loop();
   }
   ///// line trace end
 }
