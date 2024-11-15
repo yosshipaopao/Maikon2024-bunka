@@ -7,6 +7,13 @@ import comn
 import find_color
 import circle
 
+def is_linemode(ser):
+    l=ser.readline()
+    if l=="c:1":
+        return True
+    return False
+
+
 def main():
     camera = Picamera2()
     camera.configure(camera.create_preview_configuration(main={
@@ -23,7 +30,7 @@ def main():
         while mode:
             i=0
             xs=np.array([])
-            while True:
+            while mode:
                 if len(xs) < 4:
                     comn.turn(ser,30)
                 time.sleep(1)
@@ -37,6 +44,10 @@ def main():
                             x = 50
                             x += (i[1] - 410) / 30
                             xs.append(x)
+                    if is_linemode(ser):
+                        mode=False
+                        break
+                    
                 #comn.motor(ser,x,y,debug=True)
             
 
