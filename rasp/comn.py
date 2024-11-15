@@ -9,3 +9,7 @@ def motor(ser:serial.Serial,x:int,y:int,debug:bool=False)->None:
     ser.write("m:{}:{}\n".format(x,y).encode())
     if debug:
         print("m:{}:{}".format(x,y))
+
+def turn(ser,to):
+    ser.write("t:{}\n".format(to))
+    
