@@ -12,4 +12,6 @@ def motor(ser:serial.Serial,x:int,y:int,debug:bool=False)->None:
 
 def turn(ser,to):
     ser.write("t:{}\n".format(to))
-    
+
+def set_mode(ser,mode):
+    ser.write("c:{}\n".format(mode))
