@@ -21,6 +21,8 @@ void Comn::loop() {
                 Serial.println("sensor ok");
                 color_sensor[_cmd[1].toInt()] = _cmd[2].toInt();
                 break;
+            case 't':
+                _turn(_cmd[1].toInt());
             default:
                 break;
             }
