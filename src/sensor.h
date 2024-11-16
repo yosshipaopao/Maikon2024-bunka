@@ -16,8 +16,8 @@
 #define R_COLOR_PIN A7
 #define RED_LED_PIN 50
 #define GRE_LED_PIN 48
-#define L_COLOR_THRESHOLDS {200,450,200,300}
-#define R_COLOR_THRESHOLDS {170,400,170,230}
+#define L_COLOR_THRESHOLDS {200,450,200,200}
+#define R_COLOR_THRESHOLDS {170,300,170,150}
 
 
 class Sensor
@@ -56,7 +56,7 @@ public:
         rep(i, PIN_SIZE)pinMode(pins[i], INPUT);
         pinMode(L_COLOR_PIN,INPUT);
         pinMode(R_COLOR_PIN,INPUT);
-        color_led(LED_STATUS::GREEN);
+        color_led(LED_STATUS::RED);
     }
     void set(){
         rep(i, PIN_SIZE) data[i] = 0;
@@ -85,9 +85,14 @@ public:
     // 1 -> black
     // 2 -> green
     int detect_color(int LorR){
+        /*
         if(color_data[LED_STATUS::GREEN][LorR] > color_thresholds[LorR][0] && color_data[LED_STATUS::RED][LorR] > color_thresholds[LorR][1])return 0;
         if(color_data[LED_STATUS::GREEN][LorR] > color_thresholds[LorR][2] && color_data[LED_STATUS::RED][LorR] > color_thresholds[LorR][3])return 2;
         return 1;
+        */
+        if(color_data[LED_STATUS::RED][LorR] > color_thresholds[LorR][1])return 0;
+        if(color_data[LED_STATUS::RED][LorR] > color_thresholds[LorR][3])return 1;
+        return 2;
     }
     // 0 others
     // 1 black black
@@ -116,7 +121,8 @@ public:
         }
         Serial.println();
     }
-    void debug_color_raw(bool LorR){
+    void debug_color_raw(){
+        /*
         if(LorR){
             Serial.print(color_data[0][0]);
             Serial.print(" ");
@@ -125,7 +131,10 @@ public:
             Serial.print(color_data[0][1]);
             Serial.print(" ");
             Serial.println(color_data[1][1]);
-        }
+        }*/
+        Serial.print(color_data[LED_STATUS::RED][0]);
+        Serial.print(" ");
+        Serial.println(color_data[LED_STATUS::RED][1]);
     }
     void debug_color(){
         Serial.print(detect_color(0));

@@ -43,7 +43,7 @@ const int COLOR_THRESHOLD2 = 10;
 // 90 turn delay
 const int TURN_DELAY = 2000;
 
-const int COLOR_SENSOR_HIST_SIZE = 5;
+const int COLOR_SENSOR_HIST_SIZE = 7;
 
 // クラスを実体化
 Motor motor_lu(LEFT_UA, LEFT_U1, LEFT_U2);
@@ -134,22 +134,41 @@ int get_sum_state()
   return sum_state;
 }
 
+int old_color_states[COLOR_SENSOR_HIST_SIZE];
 int color_states[COLOR_SENSOR_HIST_SIZE];
 int color_states_idx =0;
+int most_color_sate(int states[]){
+  int color_count[7] = {0,0,0,0,0,0,0};
+  rep(i,COLOR_SENSOR_HIST_SIZE)color_count[states[i]]++;
+  int max_color = 0;
+  int max_count = 0;
+  rep(i,7){
+    if(color_count[i] > max_count){
+      max_count = color_count[i];
+      max_color = i;
+    }
+  }
+  return max_color;
+}
 int set_color_states(int state)
 { 
-  int old_state = color_states[color_states_idx];
+  old_color_states[color_states_idx] = color_states[color_states_idx];
   color_states[color_states_idx] = state;
   color_states_idx++;
   color_states_idx %= COLOR_SENSOR_HIST_SIZE;
 
-  if(old_state == 6 && state == 1) return 1;
-  else if (old_state == 5&&(state == 2||state==1))return 2;
-  else if (old_state == 4&&(state == 3||state==1)) return 3;
+  int old_state = most_color_sate(old_color_states);
+  int now_state = most_color_sate(color_states);
+  if(old_state == 6 && now_state == 1) return 1;
+  else if (old_state == 5&&(now_state == 2||now_state==1))return 2;
+  else if (old_state == 4&&(now_state == 3||now_state==1))return 3;
   return 0;
 }
+
+
 void reset_color_states(){
   rep(i,COLOR_SENSOR_HIST_SIZE)color_states[i] = 0;
+  rep(i,COLOR_SENSOR_HIST_SIZE)old_color_states[i] = 0;
 }
 
 void force_turn_90(int to){
@@ -178,15 +197,15 @@ int sum_sw_hist(){
 
 void loop() {
   sensor.set();
-  sensor.color_led(sensor.next_led());
-  delay(50);
+  //sensor.color_led(sensor.next_led());
+  delay(25);
   //sensor.debug_raw();
-  //sensor.debug_color_raw(false);
-  //sensor.debug_color();
+  //sensor.debug_color_raw();
+  sensor.debug_color();
   //Serial.println(sensor.next_led());
   //delay(100);
   //comn.loop();
-  sensor.debug_color_state();
+  //sensor.debug_color_state();
   //return;
   int color_sensor_result = set_color_states(sensor.get_color_state());
 
@@ -235,6 +254,8 @@ void loop() {
   //Serial.println(sum_state);
 
   if(color_sensor_result!=0){
+    reset_color_states();
+    Serial.println("color sensor detect");
     straight(HALF_STOP_SP);
     delay(1000);
     if(color_sensor_result==1){

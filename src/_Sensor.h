@@ -1,6 +1,8 @@
 /*
-#ifndef Sensor_h
-#define Sensor_h
+#ifndef sensor_h
+#define sensor_h
+
+#define USE_COLOR_SENSOR
 
 #include <Arduino.h>
 #include<Adafruit_TCS34725.h>
