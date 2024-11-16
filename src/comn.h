@@ -7,6 +7,7 @@ class Comn {
     public:
         void loop();
         void motor(int speedl, int speedr);
+        void _turn(int angle);
         bool linetracing = false;
         bool color_sensor[2] = {false,false};
         void set_mode(int mode){

@@ -94,10 +94,21 @@ void turn(int l_speed, int r_speed)
 
 void Comn::motor(int speedl, int speedr) {
   turn(-speedr, -speedl);
-  Serial.print("motor: ");
-  Serial.print(-speedr);
-  Serial.print(" ");
-  Serial.println(-speedl);
+}
+void Comn::_turn(int angle) {
+  const int magic_number = 10;
+  if(angle == 0){
+    straight(0);
+  }
+  else if(angle > 0){
+    turn(-RUN_SP, RUN_SP);
+    delay(angle * magic_number);
+    straight(0);
+  }else{
+    turn(RUN_SP, -RUN_SP);
+    delay(-angle * magic_number);
+    straight(0);
+  }
 }
 Comn comn;
 
@@ -180,7 +191,13 @@ int sum_sw_hist(){
 // 1 comn
 int mode = 0;
 void loop() {
-  if(mode == 0){   
+  if(true){
+    sensor.set();
+    sensor.color_led(sensor.next_led());
+    delay(50);
+    sensor.debug_color_raw(0);
+  }
+  if(mode == 0){
     sensor.set();
     sensor.color_led(sensor.next_led());
     delay(50);
@@ -301,7 +318,7 @@ void loop() {
         else new_state(1);
         get_sum_state();
         if(sum_state < 2)break;
-        if(cnt++ > 100){
+        if(cnt++ > 30){
           mode=1;
           comn.set_mode(1);
           return;
