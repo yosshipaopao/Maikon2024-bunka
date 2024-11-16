@@ -8,7 +8,7 @@
 
 #define PIN_SIZE 5
 #define PINS {A2, A3, A4, A5, A6}
-#define SENSOR_THRESHOLDS {650,400,400,400,500}
+#define SENSOR_THRESHOLDS {800,600,250,400,700}
 
 #define PIN_REP_CNT 5
 
@@ -16,8 +16,8 @@
 #define R_COLOR_PIN A7
 #define RED_LED_PIN 50
 #define GRE_LED_PIN 48
-#define L_COLOR_THRESHOLDS {200,450,200,200}
-#define R_COLOR_THRESHOLDS {170,300,170,150}
+#define L_COLOR_THRESHOLDS {250,250,200,150}
+#define R_COLOR_THRESHOLDS {170,150,170,97}
 
 
 class Sensor
@@ -27,12 +27,12 @@ private:
     int pins[PIN_SIZE] = PINS;
     int thresholds[PIN_SIZE] = SENSOR_THRESHOLDS;
     int color_thresholds[2][4] = {L_COLOR_THRESHOLDS,R_COLOR_THRESHOLDS};
+public:
     enum LED_STATUS {
         GREEN,
         RED
     };
     LED_STATUS led_status = GREEN;
-public:
     int data[PIN_SIZE];
     int color_data[2][2];
 
@@ -80,7 +80,10 @@ public:
         rep(i, PIN_SIZE)state |= get(i) << i;
         return state;   
     }
-
+    
+    int get_color_data(int LorR){
+        return color_data[LED_STATUS::RED][LorR];
+    }
     // 0 -> white
     // 1 -> black
     // 2 -> green
@@ -121,7 +124,7 @@ public:
         }
         Serial.println();
     }
-    void debug_color_raw(){
+    void debug_color_raw(bool LorR){
         /*
         if(LorR){
             Serial.print(color_data[0][0]);

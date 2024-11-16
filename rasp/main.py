@@ -33,6 +33,7 @@ def main():
     mode = False
     while True:
         if mode:
+            print("mode",0)
             servo.move_catcher(gpio,0)
             servo.move_holder(gpio,180)
             while mode:
@@ -103,6 +104,7 @@ def main():
                 time.sleep(2)
                 servo.move_holder(gpio,180)
         else:
+            print("mode",1)
             servo.move_catcher(gpio,180)
             if is_catchmode(ser):
                 mode=True

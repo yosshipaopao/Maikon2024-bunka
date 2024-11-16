@@ -24,26 +24,20 @@ const int RIGHT_D1 = 9;
 const int RIGHT_D2 = 10;
 const int RIGHT_DA = 8;
 
-const int SERVO_PIN_0 = 0;
-const int SERVO_PIN_1 = 1;
-
 // nani
 const int STANDBY = 16;
 
 //// 微調整用の変数
 // 通常走行の速度
-const int RUN_SP = 40;
+const int RUN_SP = 50;
 // ゆっくり曲がるときの速度
-const int HALF_STOP_SP = 20;
+const int HALF_STOP_SP = 25;
 // 強く曲がるときの速度
 const int STOP_SP = 0;
-// sensor
-const int COLOR_THRESHOLD1 = 10;
-const int COLOR_THRESHOLD2 = 10;
 // 90 turn delay
 const int TURN_DELAY = 2000;
 
-const int COLOR_SENSOR_HIST_SIZE = 7;
+const int COLOR_SENSOR_HIST_SIZE = 10;
 
 // クラスを実体化
 Motor motor_lu(LEFT_UA, LEFT_U1, LEFT_U2);
@@ -145,41 +139,55 @@ int get_sum_state()
   return sum_state;
 }
 
-int old_color_states[COLOR_SENSOR_HIST_SIZE];
-int color_states[COLOR_SENSOR_HIST_SIZE];
+
+int color_old_states[2][COLOR_SENSOR_HIST_SIZE];
+int color_states[2][COLOR_SENSOR_HIST_SIZE];
 int color_states_idx =0;
-int most_color_sate(int states[]){
-  int color_count[7] = {0,0,0,0,0,0,0};
-  rep(i,COLOR_SENSOR_HIST_SIZE)color_count[states[i]]++;
-  int max_color = 0;
-  int max_count = 0;
-  rep(i,7){
-    if(color_count[i] > max_count){
-      max_count = color_count[i];
-      max_color = i;
-    }
-  }
-  return max_color;
-}
-int set_color_states(int state)
-{ 
-  old_color_states[color_states_idx] = color_states[color_states_idx];
-  color_states[color_states_idx] = state;
+int color_thrs[2] = {300,350};
+bool get_color_detect(int lr){ 
+  color_old_states[lr][color_states_idx] = color_states[lr][color_states_idx];
+  color_states[lr][color_states_idx] = sensor.get_color_data(lr);
   color_states_idx++;
   color_states_idx %= COLOR_SENSOR_HIST_SIZE;
-
-  int old_state = most_color_sate(old_color_states);
-  int now_state = most_color_sate(color_states);
-  if(old_state == 6 && now_state == 1) return 1;
-  else if (old_state == 5&&(now_state == 2||now_state==1))return 2;
-  else if (old_state == 4&&(now_state == 3||now_state==1))return 3;
+  int avg_old_states = 0;
+  rep(i,COLOR_SENSOR_HIST_SIZE)avg_old_states += color_old_states[lr][i];
+  avg_old_states /= COLOR_SENSOR_HIST_SIZE;
+  int avg_new_states = 0;
+  rep(i,COLOR_SENSOR_HIST_SIZE)avg_new_states += color_states[lr][i];
+  avg_new_states /= COLOR_SENSOR_HIST_SIZE;
+  Serial.print(lr);
+  Serial.print(" ");
+  Serial.println(abs(avg_old_states - avg_new_states));
+  if(avg_new_states < color_thrs[lr] && abs(avg_old_states - avg_new_states) < 30 && 15 < abs(avg_old_states - avg_new_states)){
+    if(avg_new_states < avg_old_states){
+      return true;
+    }
+  }
+  return false;
+}
+bool get_color_new_detect(){
+  int avg_new_states[2] = {0,0};
+  rep(j,2)rep(i,COLOR_SENSOR_HIST_SIZE)avg_new_states[j] += color_states[j][i];
+  avg_new_states[0] /= COLOR_SENSOR_HIST_SIZE;
+  avg_new_states[1] /= COLOR_SENSOR_HIST_SIZE;
+  if(avg_new_states[0] < color_thrs[0] && avg_new_states[1] < color_thrs[1]){
+    return true;
+  }
+  return false;
+}
+int cal_result(){
+  int l=get_color_detect(0);
+  int r=get_color_detect(1);
+  if(l||r){
+    if(l&&r)return 1;
+    if(l)return 2;
+    else return 3;
+  }
   return 0;
 }
-
-
 void reset_color_states(){
-  rep(i,COLOR_SENSOR_HIST_SIZE)color_states[i] = 0;
-  rep(i,COLOR_SENSOR_HIST_SIZE)old_color_states[i] = 0;
+  rep(j,2)rep(i,COLOR_SENSOR_HIST_SIZE)color_states[j][i] = 0;
+  rep(j,2)rep(i,COLOR_SENSOR_HIST_SIZE)color_old_states[j][i] = 0;
 }
 
 void force_turn_90(int to){
@@ -190,6 +198,7 @@ void force_turn_90(int to){
    while (true)  
   {
     sensor.set();
+    delay(25);
     int state = sensor.get_state();
     if (state == 0b01110 || state == 0b01100 || state == 0b00110 || state == 0b00100 || state == 0b11111)new_state(0);
     else new_state(1);
@@ -210,71 +219,21 @@ int sum_sw_hist(){
 // 1 comn
 int mode = 0;
 void loop() {
-  sensor.set();
-  sensor.color_led(sensor.next_led());
-  delay(50);
-  //sensor.debug_raw();
-  //sensor.debug_color_raw(false);
-  //sensor.debug_color();
-  //Serial.println(sensor.next_led());
-  //delay(100);
-  //comn.loop();
-  sensor.debug_color_state();
-  //return;
-  int color_sensor_result = set_color_states(sensor.get_color_state());
-
-  sw_hist[sw_hist_idx++]=!digitalRead(18);
-  sw_hist_idx %= 100;
-  
-  if(sum_sw_hist() > 80){
-    Serial.println("start syougai");
-    straight(-RUN_SP);
-    delay(1500);
-    turn(-RUN_SP,RUN_SP);
-    delay(1100);
-    straight(RUN_SP);
-    delay(3000);
-    turn(RUN_SP,-RUN_SP);
-    delay(1100);
-    straight(RUN_SP);
-    delay(3000);
-    turn(RUN_SP,-RUN_SP);
-    delay(1100);
-    rep(i,10)states[i] = 0;
-    rep(i,100)sw_hist[i] = 0;
-=======
-  if(true){
+  if(false){
     sensor.set();
     sensor.color_led(sensor.next_led());
-    delay(50);
-    sensor.debug_color_raw(0);
->>>>>>> 34db2be1aa74ce62eac6bfc88f715620ca40123a
+    delay(25);
+    sensor.debug_color_raw(true);
+    return;
   }
   if(mode == 0){
     sensor.set();
-    sensor.color_led(sensor.next_led());
-    delay(50);
+    sensor.color_led(Sensor::LED_STATUS::RED);
+    //sensor.color_led(sensor.next_led());
+    //sensor.debug_color_raw(true);
+    delay(25);
 
-<<<<<<< HEAD
-  if(color_sensor_result!=0){
-    reset_color_states();
-    Serial.println("color sensor detect");
-    straight(HALF_STOP_SP);
-    delay(1000);
-    if(color_sensor_result==1){
-      Serial.println("180 turn");
-      force_turn_90(0);
-      Serial.println("90 turn");
-      force_turn_90(0);
-      Serial.println("180 fin");
-    }else if(color_sensor_result == 2){
-      Serial.println("90 turn");
-      force_turn_90(0);
-    }else if(color_sensor_result == 3){
-      Serial.println("-90 turn");
-      force_turn_90(1);
-=======
-    int color_sensor_result = set_color_states(sensor.get_color_state());
+    int color_sensor_result = cal_result();
 
     sw_hist[sw_hist_idx++]=!digitalRead(18);
     sw_hist_idx %= 100;
@@ -295,12 +254,12 @@ void loop() {
       delay(1100);
       rep(i,10)states[i] = 0;
       rep(i,100)sw_hist[i] = 0;
->>>>>>> 34db2be1aa74ce62eac6bfc88f715620ca40123a
     }
     
     get_sum_state();
-    
-    if(color_sensor_result!=0){
+
+    if((sensor.get_color_state() == 0b01110||sensor.get_color_state() == 0b00100)&&color_sensor_result!=0&&get_color_new_detect()){
+      Serial.println("color detect");
       straight(HALF_STOP_SP);
       delay(1000);
       if(color_sensor_result==1){
@@ -384,7 +343,7 @@ void loop() {
       while (true)  
       {
         sensor.set();
-        delay(50);
+        delay(25);
         int state = sensor.get_state();
         if (state == 0b01110 || state == 0b01100 || state == 0b00110 || state == 0b00100 
             ||  state == 0b00010 || state == 0b01000 || state == 0b11111)new_state(0);
